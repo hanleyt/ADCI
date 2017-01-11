@@ -1,5 +1,5 @@
 <?php
-printCss();
+include("Festival.php");
 
 function showFestival($festivalName, $year, $oneAct)
 {
@@ -18,18 +18,21 @@ function showFestival($festivalName, $year, $oneAct)
     printFestivalInfo($festivalName, $year, $oneAct);
 }
 
-function printFestivalInfo($festivalName, $year, $oneAct)
-{
-
+function printFestivalInfo($festivalName, $year, $oneAct) {
     $conn = getDbConnection();
 
-    $festivalMetaInfo = getFestivalMetaInfo($conn, $festivalName, $year, $oneAct);
+    $festival = getFestival($conn, $festivalName, $year, $oneAct);
 
-    $festivalNightsQueryResult = queryFestivalNights($conn, $festivalName, $year, $oneAct);
+    if ($festival == null){
+        $conn->close();
+        echo "<h2>No Data returned for Festival [" . $festivalName . "] for " . $year . "</h2>";
+    }
 
-    printFormattedFestivalInfo($festivalMetaInfo, $festivalNightsQueryResult, $festivalName, $conn, $year, $oneAct);
+    addNightsToFestival($conn, $festival, $year, $oneAct);
 
-    $conn->close();
+    printFormattedFestivalInfo($festival, $conn, $year, $oneAct);
+
+
 }
 
 function printFormattedFestivalInfo($festivalMetaInfo, $festivalNightsQueryResult, $festivalName, $conn, $year, $oneAct)
@@ -50,7 +53,7 @@ function printFormattedFestivalInfo($festivalMetaInfo, $festivalNightsQueryResul
         $isOpen = isOpen($conn, $row ["GROUP"], $oneAct);
 
         if ($oneAct == "") {
-            $play = getPlayForGroup($conn, $row ["GROUP"], $year, $oneAct);
+            $play = getPlayForGroup($conn, $row ["GROUP"], $year);
         } else {
             $play = $row ["PLAY"];
         }
@@ -213,10 +216,10 @@ function isOpen($conn, $group, $oneAct)
     }
 }
 
-function getPlayForGroup($conn, $group, $year, $oneAct)
+function getPlayForGroup($conn, $group, $year)
 {
     $formattedGroup = $conn->real_escape_string($group);
-    $sql = "select PLAY_" . $year . " from " . $oneAct . "DRAMA_GROUP where NAME='$formattedGroup'";
+    $sql = "select PLAY_" . $year . " from DRAMA_GROUP where NAME='$formattedGroup'";
     $result = $conn->query($sql);
     $row = $result->fetch_assoc();
     return $row ["PLAY_2016"];
@@ -231,25 +234,22 @@ function getAuthorOfPlay($conn, $play, $oneAct)
     return $row ["AUTHOR"];
 }
 
-function queryFestivalNights($conn, $festivalName, $year, $oneAct)
+function addNightsToFestival($conn, $festival, $year, $oneAct)
 {
-    $formattedFestivalName = $conn->real_escape_string($festivalName);
     $tableName = $oneAct . "NIGHTS_" . $year;
+    if ($oneAct != ""){
+        $joinWithGroupTable = " JOIN DRAMA_GROUP" . $year . " where ";
+    }
 
-    $sql = "SELECT DATE, GROUP FROM " . $tableName . " where FESTIVAL='$formattedFestivalName' order by DATE ASC";
+    $sql = "SELECT DATE, GROUP, PLAY FROM " . $tableName . $joinWithGroupTable . " where FESTIVAL='?' order by DATE ASC";
 
     if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("s", $formattedFestivalName);
+        $stmt->bind_param("s", $festival->name);
         $stmt->execute();
-        $stmt->bind_result($date, $group);
-
-        if ($row = $stmt->fetch()) {
-            echo $date . "---" . $group . "\n";
-        } else {
-            echo "<h2>No Data returned for Festival [" . $formattedFestivalName . "] for " . $year . "</h2>";
-        }
+        $stmt->bind_result($date, $group $play);
 
         while ($row = $stmt->fetch()) {
+            $festival->addNight($date, $group, $play);
             echo $date . "---" . $group . "\n";
         }
 
@@ -258,7 +258,7 @@ function queryFestivalNights($conn, $festivalName, $year, $oneAct)
     }
 }
 
-function getFestivalMetaInfo($conn, $festivalName, $year, $oneAct)
+function getFestival($conn, $festivalName, $year, $oneAct)
 {
     $formattedFestivalName = $conn->real_escape_string($festivalName);
     $tableName = $oneAct . "FESTIVALS_" . $year;
@@ -268,60 +268,27 @@ function getFestivalMetaInfo($conn, $festivalName, $year, $oneAct)
         $stmt->bind_param("s", $formattedFestivalName);
 
         $stmt->execute();
+
+
         $stmt->bind_result($name, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
+
         if ($row = $stmt->fetch()) {
-            $returnStr = formatFestivalMetaInfoQuery($name, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
+            $formattedName = $conn->real_escape_string($name);
+            $festival = new Festival($formattedName, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
+            $returnVal = $festival->getFormattedHeader();
         } else {
-            $returnStr = "<h2>No Data returned for Festival [" . $formattedFestivalName . "] for " . $year . "</h2>";
+            $returnVal = null;
         }
+
         $stmt->close();
-        return $returnStr;
+        return $returnVal;
     } else {
         printf("unable to prepare statement");
         exit ();
     }
 }
 
-function formatFestivalMetaInfoQuery($name, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times)
-{
-    $returnString = "";
-
-    $returnString .= "<h1>";
-    if ($ordinal != null) {
-        $returnString .= $ordinal . " ";
-    }
-    $returnString .= $name . " Drama Festival</h1>";
-
-    if ($addr1 != null) {
-        $returnString .= "<h2>" . $addr1 . ", ";
-    }
-    if ($addr2 != null) {
-        $returnString .= $addr2 . ", ";
-    }
-    if ($addr3 != null) {
-        $returnString .= "Co. " . $addr3 . "</h2>";
-    }
-    if ($url != null) {
-        $returnString .= "<h3><a href=\"http://$url\">$url</a></h3>";
-    }
-    if ($adjudicator != null) {
-        $returnString .= "<h3>Adjudicator: " . $adjudicator . "</h3>";
-    }
-    if ($admission != null) {
-        $returnString .= "<h3>Admission: " . $admission . "</h3>";
-    }
-    if ($booking != null) {
-        $returnString .= "<h3>Booking: " . $booking . "</h3>";
-    }
-    if ($times != null) {
-        $returnString .= "<h3>Curtain: " . $times . "</h3>";
-    }
-
-    return $returnString;
-}
-
-function getDbConnection()
-{
+function getDbConnection() {
 
 
     $conn = new mysqli ($servername, $username, $password, $dbname); // Create connection
@@ -335,10 +302,4 @@ function getDbConnection()
         die ("Connection failed: " . $conn->connect_error);
     }
     return $conn;
-}
-
-function printCss()
-{
-    $filename1 = 'http://adci.ie/css/festival.css';
-    echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$filename1\" media=\"all\">";
 }

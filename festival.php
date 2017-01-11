@@ -10,6 +10,7 @@
     <link rel="stylesheet" id="fifteen-bootstrap-style-css" href="/css/fifteenBootstrap.css" type="text/css" media="all">
     <link rel="stylesheet" id="fifteen-basic-style-css" href="/css/fifteenStyle.css" type="text/css" media="all">
     <link rel="stylesheet" id="fifteen-main-skin-css" href="/css/fifteenSkins.css" type="text/css" media="all">
+    <link rel="stylesheet" type="text/css" href="/css/festival.css" media="all">
 
 </head>
 <body>
