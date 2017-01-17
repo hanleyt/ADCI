@@ -1,6 +1,8 @@
 <?php
 include("Festival.php");
 
+date_default_timezone_set("Europe/Dublin");
+
 function showFestival($festivalName, $year, $oneAct)
 {
     if ($festivalName == null) {
@@ -18,82 +20,79 @@ function showFestival($festivalName, $year, $oneAct)
     printFestivalInfo($festivalName, $year, $oneAct);
 }
 
-function printFestivalInfo($festivalName, $year, $oneAct) {
+function printFestivalInfo($festivalName, $year, $oneAct)
+{
     $conn = getDbConnection();
 
     $festival = getFestival($conn, $festivalName, $year, $oneAct);
 
-    if ($festival == null){
+    if ($festival == null) {
         $conn->close();
-        echo "<h2>No Data returned for Festival [" . $festivalName . "] for " . $year . "</h2>";
+        echo "<h2>No data returned for festival [" . $festivalName . "] for " . $year . "</h2>";
     }
 
     addNightsToFestival($conn, $festival, $year, $oneAct);
+
+    echo $festival->getFormattedHeader();
 
     printFormattedFestivalInfo($festival, $conn, $year, $oneAct);
 
 
 }
 
-function printFormattedFestivalInfo($festivalMetaInfo, $festivalNightsQueryResult, $festivalName, $conn, $year, $oneAct)
+function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
 {
-    echo "<header class=\"festival-header\">$festivalMetaInfo</header>";
-
-    if ($festivalNightsQueryResult->num_rows == 0) {
+    if ($festival->length() == 0) {
         echo "<header class=\"festival-header\">";
         echo "<h2>No nights have been confirmed for this festival yet</h2>";
         echo "</header>";
         return;
     }
 
-    echo "<ul class=\"nights\">";
+    echo "<ul class=\"nights\">\n";
 
-    $festivalResults = getFestivalResults($festivalName, $conn, $year, $oneAct);
-    while ($row = $festivalNightsQueryResult->fetch_assoc()) {
-        $isOpen = isOpen($conn, $row ["GROUP"], $oneAct);
+    $festivalResults = getFestivalResults($festival->name, $conn, $year, $oneAct);
 
-        if ($oneAct == "") {
-            $play = getPlayForGroup($conn, $row ["GROUP"], $year);
-        } else {
-            $play = $row ["PLAY"];
-        }
+    foreach ($festival->getNights() as &$night) {
+        $isOpen = isOpen($conn, $night->group, $oneAct);
+
 
         if ($oneAct == "") {
-            $result = getThreeActResultForNight($festivalResults, $isOpen, $row ["GROUP"]);
+            $result = getThreeActResultForNight($festivalResults, $isOpen, $night->group);
         } else {
-            $result = getOneActResultForNight($festivalResults, $isOpen, $row ["GROUP"], $play);
+            $result = getOneActResultForNight($festivalResults, $isOpen, $night->group, $night->play);
         }
 
         $openOrConfinedSection = getOpenOrConfinedSection($isOpen, $result);
 
-        $author = getAuthorOfPlay($conn, $play, $oneAct);
-        $formattedDate = formatDate($row ["DATE"]);
+        $author = getAuthorOfPlay($conn, $night->play, $oneAct);
+        $formattedDate = formatDate($night->date);
 
-        echo "<li class=\"night\">";
+        echo "<li class=\"night\">\n";
 
         echo $openOrConfinedSection;
 
-        echo "<div class=\"night-details\">";
-        echo "<h4>" . $row ["GROUP"] . "</h4>";
-        printPresentLine($row ["GROUP"]);
+        echo "<div class=\"night-details\">\n";
+        echo "<h4>" . $night->group . "</h4>\n";
+        printPresentLine($night->group);
 
-        echo "<h4>" . $play . "<span class=\"by\">  by  </span>" . $author . "</h4>";
-        echo "</div>";
+        echo "<h4>" . $night->play . "<span class=\"by\">  by  </span>" . $author . "</h4>\n";
+        echo "</div>\n";
 
-        echo "<time class=\"date\">" . $formattedDate . "</time>";
+        echo "<time class=\"date\">" . $formattedDate . "</time>\n";
 
-        echo "</li>";
+        echo "</li>\n";
     }
 
-    echo "</ul>";
+    echo "</ul>\n";
 }
 
 function printPresentLine($groupName)
 {
     if (substr($groupName, -1) == "s" || substr($groupName, -1) == "S") {
-        echo "<h5>present</h5>";
+        echo "<h5>present</h5>\n";
     } else {
-        echo "<h5>presents</h5>";
+        echo "<h5>presents</h5>\n";
     }
 }
 
@@ -101,9 +100,9 @@ function getOpenOrConfinedSection($isOpen, $result)
 {
     $formattedResult = getOrdinal($result);
     if ($isOpen) {
-        return "<span class=\"open competition\">Open$formattedResult</span>";
+        return "<span class=\"open competition\">Open$formattedResult</span>\n";
     } else {
-        return "<span class=\"confined competition\">Confined$formattedResult</span>";
+        return "<span class=\"confined competition\">Confined$formattedResult</span>\n";
     }
 }
 
@@ -216,15 +215,6 @@ function isOpen($conn, $group, $oneAct)
     }
 }
 
-function getPlayForGroup($conn, $group, $year)
-{
-    $formattedGroup = $conn->real_escape_string($group);
-    $sql = "select PLAY_" . $year . " from DRAMA_GROUP where NAME='$formattedGroup'";
-    $result = $conn->query($sql);
-    $row = $result->fetch_assoc();
-    return $row ["PLAY_2016"];
-}
-
 function getAuthorOfPlay($conn, $play, $oneAct)
 {
     $formattedPlay = $conn->real_escape_string($play);
@@ -237,23 +227,32 @@ function getAuthorOfPlay($conn, $play, $oneAct)
 function addNightsToFestival($conn, $festival, $year, $oneAct)
 {
     $tableName = $oneAct . "NIGHTS_" . $year;
-    if ($oneAct != ""){
-        $joinWithGroupTable = " JOIN DRAMA_GROUP" . $year . " where ";
+    if ($oneAct == "") {
+        $tableToJoin = "DRAMA_GROUP_" . $year;
+//        $tableToJoin = "DRAMA_GROUP";
+        //TODO Change db table DRAMA_GROUP to DRAMA_GROUP_2016 in database
+        $joinWithGroupTable = " JOIN " . $tableToJoin . " on " . $tableToJoin . ".NAME=" . $tableName . ".`GROUP`";
+    } else {
+        $joinWithGroupTable = "";
     }
 
-    $sql = "SELECT DATE, GROUP, PLAY FROM " . $tableName . $joinWithGroupTable . " where FESTIVAL='?' order by DATE ASC";
+    $sql = "SELECT DATE, `GROUP`, PLAY FROM " . $tableName . $joinWithGroupTable . " where " . $tableName . ".FESTIVAL=? order by DATE ASC";
 
     if ($stmt = $conn->prepare($sql)) {
+
         $stmt->bind_param("s", $festival->name);
         $stmt->execute();
-        $stmt->bind_result($date, $group $play);
+        $stmt->bind_result($date, $group, $play);
 
         while ($row = $stmt->fetch()) {
             $festival->addNight($date, $group, $play);
-            echo $date . "---" . $group . "\n";
         }
 
         $stmt->close();
+
+    } else {
+        printf("unable to prepare statement to get festival nights");
+        exit ();
 
     }
 }
@@ -262,20 +261,18 @@ function getFestival($conn, $festivalName, $year, $oneAct)
 {
     $formattedFestivalName = $conn->real_escape_string($festivalName);
     $tableName = $oneAct . "FESTIVALS_" . $year;
-    $sql = "SELECT NAME, ADDRESS1, ADDRESS2, ADDRESS3, ORDINAL, URL, ADJUDICATOR, ADMISSION, BOOKING, TIMES FROM " . $tableName . " where Name=?";
+    $sql = "SELECT ADDRESS1, ADDRESS2, ADDRESS3, ORDINAL, URL, ADJUDICATOR, ADMISSION, BOOKING, TIMES FROM " . $tableName . " where Name=?";
 
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("s", $formattedFestivalName);
 
         $stmt->execute();
 
-
-        $stmt->bind_result($name, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
+        $stmt->bind_result($addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
 
         if ($row = $stmt->fetch()) {
-            $formattedName = $conn->real_escape_string($name);
-            $festival = new Festival($formattedName, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
-            $returnVal = $festival->getFormattedHeader();
+            $festival = new Festival($formattedFestivalName, $addr1, $addr2, $addr3, $ordinal, $url, $adjudicator, $admission, $booking, $times);
+            $returnVal = $festival;
         } else {
             $returnVal = null;
         }
@@ -283,12 +280,13 @@ function getFestival($conn, $festivalName, $year, $oneAct)
         $stmt->close();
         return $returnVal;
     } else {
-        printf("unable to prepare statement");
+        printf("unable to prepare statement to get festival info");
         exit ();
     }
 }
 
-function getDbConnection() {
+function getDbConnection()
+{
 
 
     $conn = new mysqli ($servername, $username, $password, $dbname); // Create connection
