@@ -1,7 +1,9 @@
 <?php
 include("Festival.php");
+include("Group.php");
 
 date_default_timezone_set("Europe/Dublin");
+//printFestivalInfo("Clare", 2016, "");
 
 function showFestival($festivalName, $year, $oneAct)
 {
@@ -51,17 +53,12 @@ function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
 
     echo "<ul class=\"nights\">\n";
 
-    $festivalResults = getFestivalResults($festival->name, $conn, $year, $oneAct);
+    $nights = $festival->nights;
 
-    foreach ($festival->getNights() as &$night) {
-        $isOpen = isOpen($conn, $night->group, $oneAct);
+    foreach ($nights as &$night) {
+        $isOpen = $night->group->isOpen();
 
-
-        if ($oneAct == "") {
-            $result = getThreeActResultForNight($festivalResults, $isOpen, $night->group);
-        } else {
-            $result = getOneActResultForNight($festivalResults, $isOpen, $night->group, $night->play);
-        }
+        $result = getGroupsResultInFestival($night->group, $festival->name, $conn, $year, $oneAct);
 
         $openOrConfinedSection = getOpenOrConfinedSection($isOpen, $result);
 
@@ -73,8 +70,8 @@ function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
         echo $openOrConfinedSection;
 
         echo "<div class=\"night-details\">\n";
-        echo "<h4>" . $night->group . "</h4>\n";
-        printPresentLine($night->group);
+        echo "<h4>" . $night->group->name . "</h4>\n";
+        printPresentLine($night->group->name);
 
         echo "<h4>" . $night->play . "<span class=\"by\">  by  </span>" . $author . "</h4>\n";
         echo "</div>\n";
@@ -120,99 +117,52 @@ function getOrdinal($result)
     }
 }
 
-function getOneActResultForNight($festivalResults, $isOpen, $group, $play)
+function getGroupsResultInFestival($group, $festivalName, $conn, $year, $oneAct)
 {
-    if ($festivalResults == null) {
+    $sql = "SELECT OPEN_FIRST, OPEN_SECOND, OPEN_THIRD, CONFINED_FIRST, CONFINED_SECOND, CONFINED_THIRD 
+FROM " . $oneAct . "FESTIVAL_RESULTS_" . $year . " WHERE FESTIVAL=?";
+
+    if ($stmt = $conn->prepare($sql)) {
+
+        $stmt->bind_param("s", $festivalName);
+        $stmt->execute();
+
+        $stmt->bind_result($open1, $open2, $open3, $confined1, $confined2, $confined3);
+
+        if ($row = $stmt->fetch()) {
+            if ($group->isOpen()) {
+                if ($group->name == $open1) {
+                    return 1;
+                } else if ($group->name == $open2) {
+                    return 2;
+                } else if ($group->name == $open3) {
+                    return 3;
+                } else {
+                    return -1;
+                }
+            } else {
+                if ($group->name == $confined1) {
+                    return 1;
+                } else if ($group->name == $confined2) {
+                    return 2;
+                } else if ($group->name == $confined3) {
+                    return 3;
+                } else {
+                    return -1;
+                }
+            }
+        } else {
+            return -1;
+        }
+    }else {
         return -1;
     }
 
-    if ($isOpen) {
-        if ($group == $festivalResults ["OPEN_FIRST"] && $play == $festivalResults ["OPEN_FIRST_PLAY"]) {
-            return 1;
-        } else if ($group == $festivalResults ["OPEN_SECOND"] && $play == $festivalResults ["OPEN_SECOND_PLAY"]) {
-            return 2;
-        } else if ($group == $festivalResults ["OPEN_THIRD"] && $play == $festivalResults ["OPEN_THIRD_PLAY"]) {
-            return 3;
-        } else {
-            return -1;
-        }
-    } else {
-        if ($group == $festivalResults ["CONFINED_FIRST"] && $play == $festivalResults ["CONFINED_FIRST_PLAY"]) {
-            return 1;
-        } else if ($group == $festivalResults ["CONFINED_SECOND"] && $play == $festivalResults ["CONFINED_SECOND_PLAY"]) {
-            return 2;
-        } else if ($group == $festivalResults ["CONFINED_THIRD"] && $play == $festivalResults ["CONFINED_THIRD_PLAY"]) {
-            return 3;
-        } else {
-            return -1;
-        }
-    }
-}
-
-function getThreeActResultForNight($festivalResults, $isOpen, $group)
-{
-    if ($festivalResults == null) {
-        return -1;
-    }
-
-    if ($isOpen) {
-        if ($group == $festivalResults ["OPEN_FIRST"]) {
-            return 1;
-        } else if ($group == $festivalResults ["OPEN_SECOND"]) {
-            return 2;
-        } else if ($group == $festivalResults ["OPEN_THIRD"]) {
-            return 3;
-        } else {
-            return -1;
-        }
-    } else {
-        if ($group == $festivalResults ["CONFINED_FIRST"]) {
-            return 1;
-        } else if ($group == $festivalResults ["CONFINED_SECOND"]) {
-            return 2;
-        } else if ($group == $festivalResults ["CONFINED_THIRD"]) {
-            return 3;
-        } else {
-            return -1;
-        }
-    }
-}
-
-function getFestivalResults($festivalName, $conn, $year, $oneAct)
-{
-    $formattedFestivalName = $conn->real_escape_string($festivalName);
-    $sql = "SELECT * FROM " . $oneAct . "FESTIVAL_RESULTS_" . $year . " WHERE FESTIVAL='$formattedFestivalName'";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row;
-    } else {
-        return null;
-    }
 }
 
 function formatDate($sqlDate)
 {
     return date("D", strtotime($sqlDate)) . " " . date("jS", strtotime($sqlDate)) . " " . date("M, Y", strtotime($sqlDate));
-}
-
-function isOpen($conn, $group, $oneAct)
-{
-    $formattedGroup = $conn->real_escape_string($group);
-    $sql = "select LEVEL from " . $oneAct . "DRAMA_GROUP where NAME='$formattedGroup'";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-    } else {
-        echo "No rows returned when querying competition level for group $formattedGroup";
-    }
-    if ($row ["LEVEL"] == "OPEN") {
-        return true;
-    } else if ($row ["LEVEL"] == "CONFINED") {
-        return false;
-    } else {
-        return "Invalid value for Competition Level for group: $formattedGroup";
-    }
 }
 
 function getAuthorOfPlay($conn, $play, $oneAct)
@@ -227,25 +177,29 @@ function getAuthorOfPlay($conn, $play, $oneAct)
 function addNightsToFestival($conn, $festival, $year, $oneAct)
 {
     $tableName = $oneAct . "NIGHTS_" . $year;
-    if ($oneAct == "") {
-        $tableToJoin = "DRAMA_GROUP_" . $year;
-//        $tableToJoin = "DRAMA_GROUP";
-        //TODO Change db table DRAMA_GROUP to DRAMA_GROUP_2016 in database
-        $joinWithGroupTable = " JOIN " . $tableToJoin . " on " . $tableToJoin . ".NAME=" . $tableName . ".`GROUP`";
+
+    //TODO Change db table DRAMA_GROUP to DRAMA_GROUP_2016 in database
+    if ($year == 2016) {
+        $tableToJoin = $oneAct . "DRAMA_GROUP";
+        $playCol = "PLAY_2016";
     } else {
-        $joinWithGroupTable = "";
+        $tableToJoin = $oneAct . "DRAMA_GROUP_" . $year;
+        $playCol = "PLAY";
     }
+    $joinWithGroupTable = " JOIN " . $tableToJoin . " on " . $tableToJoin . ".NAME=" . $tableName . ".`GROUP`";
 
-    $sql = "SELECT DATE, `GROUP`, PLAY FROM " . $tableName . $joinWithGroupTable . " where " . $tableName . ".FESTIVAL=? order by DATE ASC";
 
+    $sql = "SELECT DATE, `GROUP`, " . $playCol . ", LEVEL FROM " . $tableName . $joinWithGroupTable . " where " . $tableName . ".FESTIVAL=? order by DATE ASC";
     if ($stmt = $conn->prepare($sql)) {
 
         $stmt->bind_param("s", $festival->name);
         $stmt->execute();
-        $stmt->bind_result($date, $group, $play);
+
+        $stmt->bind_result($date, $group, $play, $level);
 
         while ($row = $stmt->fetch()) {
-            $festival->addNight($date, $group, $play);
+            $group = $conn->real_escape_string($group);
+            $festival->addNight($date, new Group($group, $level), $play);
         }
 
         $stmt->close();
@@ -287,7 +241,10 @@ function getFestival($conn, $festivalName, $year, $oneAct)
 
 function getDbConnection()
 {
-
+    $servername = "tangelo.webhostingireland.ie";
+    $username = "adciie_default";
+    $password = "Default123";
+    $dbname = "adciie_database";
 
     $conn = new mysqli ($servername, $username, $password, $dbname); // Create connection
 
