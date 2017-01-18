@@ -3,43 +3,66 @@ include("Festival.php");
 include("Group.php");
 
 date_default_timezone_set("Europe/Dublin");
-//printFestivalInfo("Clare", 2016, "");
-
-function showFestival($festivalName, $year, $oneAct)
-{
-    if ($festivalName == null) {
-        printf("Festival name cannot be null");
-        exit ();
-    }
-
-    if ($year == null) {
-        $year = 2016;
-    }
-    if ($oneAct == null) {
-        $oneAct = "";
-    }
-
-    printFestivalInfo($festivalName, $year, $oneAct);
-}
+//echo "test\n";
+//printFestivalInfo("Ballina", "2016", true);
 
 function printFestivalInfo($festivalName, $year, $oneAct)
 {
+    assertValidParameters($festivalName, $year, $oneAct);
+
+    if ($oneAct) {
+        $oneActStr = "ONE_ACT_";
+    } else {
+        $oneActStr = "";
+    }
+
     $conn = getDbConnection();
 
-    $festival = getFestival($conn, $festivalName, $year, $oneAct);
+    $festival = getFestival($conn, $festivalName, $year, $oneActStr);
 
     if ($festival == null) {
         $conn->close();
         echo "<h2>No data returned for festival [" . $festivalName . "] for " . $year . "</h2>";
     }
 
-    addNightsToFestival($conn, $festival, $year, $oneAct);
+    addNightsToFestival($conn, $festival, $year, $oneActStr);
 
     echo $festival->getFormattedHeader();
 
-    printFormattedFestivalInfo($festival, $conn, $year, $oneAct);
+    printFormattedFestivalInfo($festival, $conn, $year, $oneActStr);
 
+}
 
+function assertValidParameters($festivalName, $year, $oneAct)
+{
+    if (!is_string($festivalName)) {
+        pageError("$festivalName is not a string");
+    }
+
+    if (!is_numeric($year)) {
+        pageError("$year is not a number");
+    }
+
+    if (!is_bool($oneAct)) {
+        pageError("$oneAct is not a boolean");
+    }
+
+    if ($festivalName === null || $year === null) {
+        pageError("$festivalName === null || $year === null");
+    }
+
+    if (strlen($year) != 4) {
+        pageError("year length != 4");
+    }
+
+}
+
+function pageError($msg)
+{
+    error_log($msg, 0);
+    http_response_code(404);
+    include('../404.php');
+    die();
 }
 
 function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
@@ -154,7 +177,7 @@ FROM " . $oneAct . "FESTIVAL_RESULTS_" . $year . " WHERE FESTIVAL=?";
         } else {
             return -1;
         }
-    }else {
+    } else {
         return -1;
     }
 
@@ -181,7 +204,11 @@ function addNightsToFestival($conn, $festival, $year, $oneAct)
     //TODO Change db table DRAMA_GROUP to DRAMA_GROUP_2016 in database
     if ($year == 2016) {
         $tableToJoin = $oneAct . "DRAMA_GROUP";
-        $playCol = "PLAY_2016";
+        if (strlen($oneAct) == 0) {
+            $playCol = "PLAY_2016";
+        } else {
+            $playCol = "PLAY";
+        }
     } else {
         $tableToJoin = $oneAct . "DRAMA_GROUP_" . $year;
         $playCol = "PLAY";

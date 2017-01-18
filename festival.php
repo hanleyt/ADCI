@@ -7,7 +7,8 @@
 
     <link rel="canonical" href="http://adci.ie/">
     <link rel="shortlink" href="http://adci.ie/">
-    <link rel="stylesheet" id="fifteen-bootstrap-style-css" href="/css/fifteenBootstrap.css" type="text/css" media="all">
+    <link rel="stylesheet" id="fifteen-bootstrap-style-css" href="/css/fifteenBootstrap.css" type="text/css"
+          media="all">
     <link rel="stylesheet" id="fifteen-basic-style-css" href="/css/fifteenStyle.css" type="text/css" media="all">
     <link rel="stylesheet" id="fifteen-main-skin-css" href="/css/fifteenSkins.css" type="text/css" media="all">
     <link rel="stylesheet" type="text/css" href="/css/festival.css" media="all">
@@ -25,7 +26,7 @@
 
         <div class="social-icons">
             <a target="_blank" href="https://www.facebook.com/adcipage/" title="Facebook"><img
-                src="/img/facebook.png"></a>
+                    src="/img/facebook.png"></a>
             <a target="_blank" href="https://twitter.com/ADCI_Forum" title="Twitter"><img src="/img/twitter.png"></a>
         </div>
     </header>
@@ -47,16 +48,20 @@
 
     <main id="content" class="container" role="main">
         <?php
-            require_once '../php/festivalFunctions.php';
+        require_once '../php/festivalFunctions.php';
 
-            if ($_GET["oneAct"]){
-                $oneAct = "ONE_ACT_";
+        if (isset($_GET['oneAct'])) {
+            if ($_GET['oneAct'] == 'true') {
+                $oneAct = true;
             }else{
-                 $oneAct = "";
+                $oneAct = false;
             }
-            showFestival($_GET["name"], $_GET["year"], $oneAct);
-        ?>
+        }else {
+            $oneAct = false;
+        }
 
+        printFestivalInfo($_GET["name"], $_GET["year"], $oneAct);
+        ?>
 
 
     </main>
