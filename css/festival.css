@@ -1,0 +1,238 @@
+.site-main {
+    background: url(http://adci.ie/wp-content/uploads/2015/05/cropped-Curtains1.jpg) no-repeat;
+    background-position: center top;
+    background-size: cover;
+    border-radius: 20px;
+    opacity: 0.85;
+}
+
+.festival-header {
+    color: white !important;
+    opacity: 0.85;
+    border-radius: 10px;
+    text-align: center;
+}
+.festival-header:hover {
+    opacity: 1;
+}
+
+.festival-header h1 { /*main title*/
+    color: white !important;
+    text-shadow: 0 1px 0 #ccc,
+    0 2px 0 #c9c9c9,
+    0 6px 1px rgba(0,0,0,.1),
+    0 0 5px rgba(0,0,0,.1),
+    0 1px 3px rgba(0,0,0,.3),
+    0 3px 5px rgba(0,0,0,.2),
+    0 5px 10px rgba(0,0,0,.25),
+    0 10px 10px rgba(0,0,0,.2),
+    0 20px 20px rgba(0,0,0,.15);
+    font-size: 54px;
+
+}
+@media screen and (max-width: 991px) {
+    .festival-header h1 {
+        font-size: 42px;
+    }
+}
+@media screen and (max-width: 767px) {
+    .festival-header h1 {
+        font-size: 36px;
+    }
+}
+
+
+
+.festival-header h2{/*#address*/
+    color: white !important;
+    font-size: 23px;
+}
+@media screen and (max-width: 991px) {
+    .festival-header h2 {
+        font-size: 18px;
+    }
+}
+@media screen and (max-width: 767px) {
+    .festival-header h2 {
+        font-size: 16px;
+    }
+}
+
+
+.festival-header h3 {/*festival-website*/
+    color: white !important;
+    font-size: 17px;
+}
+@media screen and (max-width: 767px) {
+    .festival-header h3 {
+        font-size: 14px;
+    }
+}
+
+
+
+.nights { /*nights-list*/
+    list-style: none;
+    margin: 0;
+    padding: 0px 30px 50px 30px;
+    display: block;
+}
+.night {
+    background: white;
+    border-radius: 6px;
+    min-height: 100px;
+    margin: 5px 0;
+    opacity: 0.9;
+    padding: 4px 25px;
+    display: inline-block;
+    width: 100%;
+}
+@media screen and (max-width: 991px) {
+    .night {
+        padding: 4px 16px;
+    }
+}
+@media screen and (max-width: 767px) {
+    .night {
+        padding: 4px 5px;
+    }
+}
+.night:hover {
+    opacity: 1;
+}
+
+.competition {
+    font-size: 22px;
+    float: left;
+    display: inline-block;
+    color: white;
+    width: 140px;
+    height: 70px;
+    position: relative;
+    text-align: center;
+    line-height: 70px;
+    border-radius: 50%;
+    opacity: 0.9;
+    margin: 14px auto;
+}
+.competition:hover {
+    opacity: 1;
+}
+@media screen and (max-width: 991px) {
+    .competition {
+        margin: 18px 0px;
+        font-size: 20px;
+    }
+}
+@media screen and (max-width: 767px) {
+    .competition {
+        float: none;
+        display: block;
+        margin: 14px auto;
+    }
+}
+
+.competition.open {
+    background-color: #DB4935;
+}
+.competition.confined {
+    background-color: #358cce;
+}
+
+
+
+
+.night-details {
+    color: black;
+    display: inline-block;
+    float: none;
+    width: 65%;
+    margin: 14px auto;
+    text-align: center;
+}
+@media screen and (max-width: 1200px) {
+    .night-details {
+        width: 58%;
+    }
+}
+@media screen and (max-width: 991px) {
+    .night-details {
+        width: 48%;
+    }
+}
+@media screen and (max-width: 767px) {
+    .night-details {
+        display: block;
+        margin: 14px auto;
+        width: 100%;
+        padding: 0 auto;
+    }
+}
+
+
+
+
+.night-details h4 {
+    font-size: 18px;
+    margin: 0 auto;
+}
+.night-details h5 {
+    font-size: 14px;
+}
+
+.by {
+    font-size: 10px;
+}
+
+
+
+
+
+.date {
+    background: #358cce;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    float: right;
+    width: 165px;
+    text-align: center;
+    display: inline-block;
+    font-size: 14px;
+    margin: 28px auto;
+    padding: 7px 16px;
+
+}
+.date:hover {
+    background-color: #459cde;
+}
+@media screen and (max-width: 991px) {
+    .date {
+        margin: 32px 0px;
+        padding: 7px 0px;
+        width: 145px;
+    }
+}
+@media screen and (max-width: 767px) {
+    .date {
+        float: none;
+        display: block;
+        margin: 14px auto;
+    }
+}
+
+.list-cols {
+    -webkit-column-width:       250px;
+    -moz-column-width:      250px;
+    -o-column-width:        250px;
+    -ms-column-width:       250px;
+    column-width:           250px;
+
+    -webkit-column-rule-style:  solid;
+    -moz-column-rule-style:     solid;
+    -o-column-rule-style:       solid;
+    -ms-column-rule-style:      solid;
+    column-rule-style:      solid;
+
+    padding: 20px 0px 30px 20px;
+}
+

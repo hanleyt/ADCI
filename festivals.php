@@ -44,7 +44,9 @@
         </nav>
     </div>
 
-<!--    <h1 class="container single-entry-title">Festival</h1>-->
+<!--    <div id="page" class="hfeed site">-->
+<!--        <h1 class="container single-entry-title">Festivals</h1>-->
+<!--    </div>-->
 
     <main id="content" class="container" role="main">
         <?php
@@ -60,7 +62,8 @@
             $oneAct = false;
         }
 
-        printFestivalInfo($_GET["name"], $_GET["year"], $oneAct);
+        printFestivalsList($_GET["year"], $oneAct);
+
         ?>
 
 
