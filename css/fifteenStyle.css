@@ -120,6 +120,10 @@ hr {
 /* Text elements */
 p {
     margin-bottom: 1.5em;
+    padding-left: 15px;
+    padding-right: 15px;
+    color: rgba(4, 4, 4, 0.64);
+    font-size: 16px;
 }
 ul, ol {
     margin: 0 0 1.5em 3em;
@@ -496,13 +500,20 @@ object {
 ----------------------------------------------- */
 
 .widget {
-    margin: 0 0 1.5em;
+    margin: 1.5em;
     padding: 15px;
     border: 1px solid #515151;
 }
 
+:hover.widget {
+    background: rgba(74, 74, 74, 0.05);
+}
+
 .widget h5 {
     text-align: center;
+    font-size: 18px;
+    padding-bottom: 8px;
+    padding-top: 4px;
 }
 
 /* Make sure select elements fit in widgets */

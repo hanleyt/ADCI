@@ -1,4 +1,4 @@
-@import "http://adci.ie/wp-content/themes/fifteen/fonts/font-awesome/css/font-awesome.min.css";
+@import "/css/fonts/font-awesome.min.css";
 /* Table of Contents
 ------------------------------------------------------- *
 
@@ -37,8 +37,8 @@ code {
 -------------------------------------------------------	*/
 @font-face {
     font-family: 'Julius Sans One';
-    src: url('http://adci.ie/wp-content/themes/fifteen/fonts/julius-sans-one/julius_sans_one-webfont.eot');
-    src: url('http://adci.ie/wp-content/themes/fifteen/fonts/julius-sans-one/julius_sans_one-webfont.eot?#iefix') format('embedded-opentype'), url('http://adci.ie/wp-content/themes/fifteen/fonts/julius-sans-one/julius_sans_one-webfont.woff') format('woff'), url('http://adci.ie/wp-content/themes/fifteen/fonts/julius-sans-one/julius_sans_one-webfont.ttf') format('truetype'), url('http://adci.ie/wp-content/themes/fifteen/fonts/julius-sans-one/julius_sans_one-webfont.svg') format('svg');
+    src: url('/css/fonts/julius_sans_one-webfont.eot');
+    src: url('/css/fonts/julius_sans_one-webfont.eot?#iefix') format('embedded-opentype'), url('/css/fonts/julius_sans_one-webfont.woff') format('woff'), url('/css/fonts/julius_sans_one-webfont.ttf') format('truetype'), url('/css/fonts/julius_sans_one-webfont.svg') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -493,6 +493,18 @@ a:active {
         border-right: none;
     }
 }
+.navigation-context-header {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 25px 30px;
+    margin-bottom: -55px;
+    color: #eee;
+    font-weight: lighter;
+    margin-top: 30px;
+    font-size: 36px;
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif
+}
+
+
 /* 7. Content
 ------------------------------------------------------- */
 #content {
@@ -588,6 +600,13 @@ article code {
 }
 .tp_recent_tweets ul li:before {
     content: none !important;
+}
+
+.article-header {
+    font-size: 24px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 500;
+    padding: 15px 0px 15px 15px;
 }
 
 /* 12. Header Fixes for Responsive Part
