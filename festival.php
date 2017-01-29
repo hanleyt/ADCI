@@ -34,8 +34,8 @@
     <div class="default-nav-wrapper">
         <nav id="site-navigation" role="navigation">
             <ul>
-                <li><a href="http://adci.ie/">Home</a></li>
-                <li><a href="http://adci.ie/index.php/festivals/">Festivals</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/festivals.html">Festivals</a></li>
                 <li><a href="http://adci.ie/index.php/results/">Results</a></li>
                 <li><a href="http://adci.ie/index.php/archives/">Archives</a></li>
                 <li><a href="http://adci.ie/index.php/contact/">Contact</a></li>
@@ -44,24 +44,31 @@
         </nav>
     </div>
 
-<!--    <h1 class="container single-entry-title">Festival</h1>-->
 
-    <main id="content" class="container" role="main">
-        <?php
-        require_once '../php/festivalFunctions.php';
-
-        if (isset($_GET['oneAct'])) {
-            if ($_GET['oneAct'] == 'true') {
-                $oneAct = true;
-            }else{
-                $oneAct = false;
-            }
-        }else {
+    <?php
+    if (isset($_GET['oneAct'])) {
+        if ($_GET['oneAct'] == 'true') {
+            $oneAct = true;
+        }else{
             $oneAct = false;
         }
+    }else {
+        $oneAct = false;
+    }
 
-        printFestivalInfo($_GET["name"], $_GET["year"], $oneAct);
-        ?>
+    $numActs = $oneAct ? "One" : "Three";
+    $year = $_GET["year"];
+    $name = $_GET["name"];
+
+    echo "<h1 class=\"container navigation-context-header\">$numActs Act Festivals $year</h1>";
+
+    echo "<main id=\"content\" class=\"container\" role=\"main\">";
+
+
+    require $_SERVER['DOCUMENT_ROOT'] . '/php/festivalFunctions.php';
+    printFestivalInfo($name, $year, $oneAct);
+
+    ?>
 
 
     </main>

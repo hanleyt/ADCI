@@ -1,23 +1,19 @@
 <?php
-include("Festival.php");
-include("Group.php");
+require $_SERVER['DOCUMENT_ROOT'] . '/php/Festival.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/php/Group.php';
 
 date_default_timezone_set("Europe/Dublin");
-//echo "test\n";
-//printFestivalInfo("Ballina", "2016", true);
+
 
 function printFestivalInfo($festivalName, $year, $oneAct)
 {
-    assertValidParameters($festivalName, $year, $oneAct);
-
-    if ($oneAct) {
-        $oneActStr = "ONE_ACT_";
-    } else {
-        $oneActStr = "";
-    }
+    assertValidOneAct($oneAct);
+    assertValidFestival($festivalName);
+    assertValidYear($year);
 
     $conn = getDbConnection();
 
+    $oneActStr = getOneActString($oneAct);
     $festival = getFestival($conn, $festivalName, $year, $oneActStr);
 
     if ($festival == null) {
@@ -33,35 +29,54 @@ function printFestivalInfo($festivalName, $year, $oneAct)
 
 }
 
-function assertValidParameters($festivalName, $year, $oneAct)
+function getOneActString($oneAct)
 {
+    if ($oneAct) {
+        return "ONE_ACT_";
+    } else {
+        return "";
+    }
+}
+
+function assertValidOneAct($oneAct)
+{
+    if (!is_bool($oneAct)) {
+        pageError("oneAct: [$oneAct] is not a boolean");
+    }
+}
+
+function assertValidFestival($festivalName)
+{
+    if ($festivalName === null) {
+        pageError("festivalName: [$festivalName] cannot be null");
+    }
+
     if (!is_string($festivalName)) {
-        pageError("$festivalName is not a string");
+        pageError("festivalName: [$festivalName] is not a string");
+    }
+}
+
+
+function assertValidYear($year)
+{
+    if ($year === null) {
+        pageError("year cannot be null");
     }
 
     if (!is_numeric($year)) {
-        pageError("$year is not a number");
-    }
-
-    if (!is_bool($oneAct)) {
-        pageError("$oneAct is not a boolean");
-    }
-
-    if ($festivalName === null || $year === null) {
-        pageError("$festivalName === null || $year === null");
+        pageError("year: [$year] is not a number");
     }
 
     if (strlen($year) != 4) {
-        pageError("year length != 4");
+        pageError("year length must be equal 4");
     }
-
 }
 
 function pageError($msg)
 {
     error_log($msg, 0);
     http_response_code(404);
-    include('../404.php');
+    include(__DIR__ . '/../404.php');
     die();
 }
 
@@ -262,6 +277,49 @@ function getFestival($conn, $festivalName, $year, $oneAct)
         return $returnVal;
     } else {
         printf("unable to prepare statement to get festival info");
+        exit ();
+    }
+}
+
+function printFestivalsList($year, $oneAct)
+{
+    assertValidYear($year);
+    assertValidOneAct($oneAct);
+
+    $conn = getDbConnection();
+
+    $oneActStr = getOneActString($oneAct);
+
+    $tableName = $oneActStr . "FESTIVALS_" . $year;
+    $sql = "SELECT NAME FROM " . $tableName . " ORDER BY NAME";
+
+    if ($stmt = $conn->prepare($sql)) {
+
+        $stmt->execute();
+
+        $stmt->bind_result($name);
+
+        if ($oneAct) {
+            $oneActParam = '&oneAct=true';
+        } else {
+            $oneActParam = '';
+        }
+
+        echo "<div class=\"list-cols\">";
+        echo "<ul>";
+        while ($row = $stmt->fetch()) {
+            if (strpos($name, 'Ireland') === false) {
+                echo "<li>";
+                echo "<a href=\"/festival.php?name=$name&year=$year$oneActParam\">$name</a>";
+                echo "</li>\n";
+            }
+        }
+        echo "</ul>";
+        echo "</div>";
+
+        $stmt->close();
+    } else {
+        printf("unable to prepare statement to get list of festivals");
         exit ();
     }
 }
