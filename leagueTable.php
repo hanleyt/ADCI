@@ -11,7 +11,7 @@
           media="all">
     <link rel="stylesheet" id="fifteen-basic-style-css" href="/css/fifteenStyle.css" type="text/css" media="all">
     <link rel="stylesheet" id="fifteen-main-skin-css" href="/css/fifteenSkins.css" type="text/css" media="all">
-    <link rel="stylesheet" type="text/css" href="/css/festival.css" media="all">
+    <link rel="stylesheet" type="text/css" href="/css/table.css" media="all">
 
 </head>
 <body>
@@ -44,32 +44,34 @@
         </nav>
     </div>
 
+
     <?php
-        if (isset($_GET['oneAct'])) {
-            if ($_GET['oneAct'] == 'true') {
-                $oneAct = true;
-            }else{
-                $oneAct = false;
-            }
-        }else {
+    if (isset($_GET['oneAct'])) {
+        if ($_GET['oneAct'] == 'true') {
+            $oneAct = true;
+        }else{
             $oneAct = false;
         }
+    }else {
+        $oneAct = false;
+    }
 
-        $numActs = $oneAct ? "One" : "Three";
-        $year = $_GET["year"];
+    $numActs = $oneAct ? "One" : "Three";
+    $year = $_GET["year"];
 
-        echo "<h1 class=\"container navigation-context-header\">$numActs Act Festivals $year</h1>";
+    echo "<h1 class=\"container navigation-context-header\">$numActs-Act Results $year</h1>";
 
-        echo "<main id=\"content\" class=\"container\" role=\"main\">";
+    echo "<main id=\"content\" class=\"container\" role=\"main\">";
 
-        require $_SERVER['DOCUMENT_ROOT'] . '/php/festivalFunctions.php';
-        printFestivalsList($year, $oneAct);
-        ?>
-    </main>
 
-    <?php
-        echo "<h1>oneAct = $oneAct </h1>";
+    require $_SERVER['DOCUMENT_ROOT'] . '/php/resultsFunctions.php';
+    $competition = $_GET["competition"];
+    printResultsTable($year, $competition, $oneAct);
+
     ?>
+
+
+    </main>
 
     <footer class="social-icons">
         <a target="_blank" href="https://www.facebook.com/adcipage/" title="Facebook"><img src="/img/facebook.png"

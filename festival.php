@@ -36,9 +36,9 @@
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/festivals.html">Festivals</a></li>
-                <li><a href="http://adci.ie/index.php/results/">Results</a></li>
-                <li><a href="http://adci.ie/index.php/archives/">Archives</a></li>
-                <li><a href="http://adci.ie/index.php/contact/">Contact</a></li>
+                <li><a href="/results.html">Results</a></li>
+                <li><a href="/archives.html">Archives</a></li>
+                <li><a href="/contact.html">Contact</a></li>
                 <li><a href="http://adci.ie/index.php/about/">About</a></li>
             </ul>
         </nav>
