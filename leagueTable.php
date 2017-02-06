@@ -58,14 +58,14 @@
 
     $numActs = $oneAct ? "One" : "Three";
     $year = $_GET["year"];
+    $competition = $_GET["competition"];
 
-    echo "<h1 class=\"container navigation-context-header\">$numActs-Act Results $year</h1>";
+    echo "<h1 class=\"container navigation-context-header\">$numActs-Act $competition League Table $year</h1>";
 
     echo "<main id=\"content\" class=\"container\" role=\"main\">";
 
 
     require $_SERVER['DOCUMENT_ROOT'] . '/php/resultsFunctions.php';
-    $competition = $_GET["competition"];
     printResultsTable($year, $competition, $oneAct);
 
     ?>

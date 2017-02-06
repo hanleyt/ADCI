@@ -1,7 +1,7 @@
 <?php
 require 'commonFunctions.php';
 
-//echo "TEST\n"; printResultsTable(2016, "Open", false);
+//echo "TEST\n"; printResultsTable(2017, "Open", false);
 
 function printResultsTable($year, $competition, $oneAct)
 {
@@ -39,7 +39,7 @@ function buildResultsArray($competition, $year, $oneAct)
 
             if ($oneAct == "") {
                 $groupName = $row ['NAME'];
-                $play = $row ["PLAY_" . $year];
+                $play = $row ["PLAY"];
             } else {
                 $groupName = $row ['GROUP'];
                 $play = $row ['PLAY'];
@@ -106,7 +106,7 @@ function printTable($resultsArray)
 function printTableHeader()
 {
     echo "
-        <div style=\"overflow:auto;\">
+        <div class=\"table-wrapper\">
         <table id = \"table-fill\">
             <thead>
                 <tr>
@@ -271,7 +271,7 @@ function getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 
 function getListOfGroupsAndPlays($conn, $competition, $year, $oneAct)
 {
     if ($oneAct == "") {
-        $sql = "SELECT NAME, PLAY_2016 FROM DRAMA_GROUP where LEVEL='$competition'";
+        $sql = "SELECT NAME, `PLAY` FROM DRAMA_GROUP_$year where LEVEL='$competition'";
     } else {
         $sql = "SELECT DISTINCT `GROUP`, PLAY FROM " . $oneAct . "NIGHTS_" . $year . " JOIN " . $oneAct . "DRAMA_GROUP ON " . $oneAct . "DRAMA_GROUP.NAME=" . $oneAct . "NIGHTS_" . $year . ".GROUP WHERE " . $oneAct . "DRAMA_GROUP.LEVEL='" . $competition . "'";
     }
