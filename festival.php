@@ -39,7 +39,7 @@
                 <li><a href="/results.html">Results</a></li>
                 <li><a href="/archives.html">Archives</a></li>
                 <li><a href="/contact.html">Contact</a></li>
-                <li><a href="http://adci.ie/index.php/about/">About</a></li>
+                <li><a href="/about.html">About</a></li>
             </ul>
         </nav>
     </div>
