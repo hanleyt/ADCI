@@ -33,42 +33,39 @@ function buildResultsArray($competition, $year, $oneAct)
         array()
     );
     $groupAndPlayList = getListOfGroupsAndPlays($conn, $competition, $year, $oneAct);
-    if ($groupAndPlayList->num_rows > 0) {
-        $rowNum = 0;
-        while ($row = $groupAndPlayList->fetch_assoc()) {
 
-            if ($oneAct == "") {
-                $groupName = $row ['NAME'];
-                $play = $row ["PLAY"];
-            } else {
-                $groupName = $row ['GROUP'];
-                $play = $row ['PLAY'];
-            }
-            $resultsArray [$rowNum] ['Group'] = $groupName;
-            $resultsArray [$rowNum] ['Play'] = $play;
-            $resultsArray [$rowNum] ['numWins'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'FIRST');
-            $resultsArray [$rowNum] ['numSeconds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'SECOND');
-            $resultsArray [$rowNum] ['numThirds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'THIRD');
-            $resultsArray [$rowNum] ['numFestivalsEntered'] = getNumFestivalsEntered($conn, $groupName, $year, $oneAct, $play);
-            $resultsArray [$rowNum] ['totalPoints'] = caluclatePointsFromTopThreeFestivals($resultsArray [$rowNum] ['numWins'], $resultsArray [$rowNum] ['numSeconds'], $resultsArray [$rowNum] ['numThirds']);
-            $resultsArray [$rowNum] ['noPointsFestivals'] = getNumNoPlacings($conn, $groupName, $year, $oneAct, $play);
-            $rowNum++;
+    $rowNum = 0;
+    while ($row = $groupAndPlayList->fetch_assoc()) {
+
+        if ($oneAct == "") {
+            $groupName = $row ['NAME'];
+            $play = $row ["PLAY"];
+        } else {
+            $groupName = $row ['GROUP'];
+            $play = $row ['PLAY'];
         }
-
-        $sort = array();
-        foreach ($resultsArray as $key => $row) {
-            $sort ['totalPoints'] [$key] = $row ['totalPoints'];
-            $sort ['numWins'] [$key] = $row ['numWins'];
-            $sort ['numSeconds'] [$key] = $row ['numSeconds'];
-            $sort ['numThirds'] [$key] = $row ['numThirds'];
-            $sort ['noPointsFestivals'] [$key] = $row ['noPointsFestivals'];
-        }
-        array_multisort($sort ['totalPoints'], SORT_DESC, $sort ['numWins'], SORT_DESC, $sort ['numSeconds'], SORT_DESC, $sort ['numThirds'], SORT_DESC, $sort ['noPointsFestivals'], SORT_ASC, $resultsArray);
-
-        return $resultsArray;
-    } else {
-        pageError("No groups available for $competition competition $year");
+        $resultsArray [$rowNum] ['Group'] = $groupName;
+        $resultsArray [$rowNum] ['Play'] = $play;
+        $resultsArray [$rowNum] ['numWins'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'FIRST');
+        $resultsArray [$rowNum] ['numSeconds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'SECOND');
+        $resultsArray [$rowNum] ['numThirds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'THIRD');
+        $resultsArray [$rowNum] ['numFestivalsEntered'] = getNumFestivalsEntered($conn, $groupName, $year, $oneAct, $play);
+        $resultsArray [$rowNum] ['totalPoints'] = caluclatePointsFromTopThreeFestivals($resultsArray [$rowNum] ['numWins'], $resultsArray [$rowNum] ['numSeconds'], $resultsArray [$rowNum] ['numThirds']);
+        $resultsArray [$rowNum] ['noPointsFestivals'] = getNumNoPlacings($conn, $groupName, $year, $oneAct, $play);
+        $rowNum++;
     }
+
+    $sort = array();
+    foreach ($resultsArray as $key => $row) {
+        $sort ['totalPoints'] [$key] = $row ['totalPoints'];
+        $sort ['numWins'] [$key] = $row ['numWins'];
+        $sort ['numSeconds'] [$key] = $row ['numSeconds'];
+        $sort ['numThirds'] [$key] = $row ['numThirds'];
+        $sort ['noPointsFestivals'] [$key] = $row ['noPointsFestivals'];
+    }
+    array_multisort($sort ['totalPoints'], SORT_DESC, $sort ['numWins'], SORT_DESC, $sort ['numSeconds'], SORT_DESC, $sort ['numThirds'], SORT_DESC, $sort ['noPointsFestivals'], SORT_ASC, $resultsArray);
+
+    return $resultsArray;
     $conn->close();
 }
 
@@ -273,8 +270,17 @@ function getListOfGroupsAndPlays($conn, $competition, $year, $oneAct)
     if ($oneAct == "") {
         $sql = "SELECT NAME, `PLAY` FROM DRAMA_GROUP_$year where LEVEL='$competition'";
     } else {
-        $sql = "SELECT DISTINCT `GROUP`, PLAY FROM " . $oneAct . "NIGHTS_" . $year . " JOIN " . $oneAct . "DRAMA_GROUP ON " . $oneAct . "DRAMA_GROUP.NAME=" . $oneAct . "NIGHTS_" . $year . ".GROUP WHERE " . $oneAct . "DRAMA_GROUP.LEVEL='" . $competition . "'";
+        $nightsTable = $oneAct . "NIGHTS_" . $year;
+        $groupTable = $oneAct . "DRAMA_GROUP_" . $year;
+
+        $sql = "SELECT DISTINCT `GROUP`, PLAY FROM $nightsTable JOIN $groupTable ON $groupTable.NAME=$nightsTable.GROUP WHERE $groupTable.LEVEL='" . $competition . "'";
     }
     $result = $conn->query($sql);
-    return $result;
+
+    if ($result->num_rows > 0) {
+        return $result;
+    } else {
+        pageError("No groups and plays returned for [$oneAct] [$competition] competition for [$year]. SQL=$sql");
+    }
+
 }

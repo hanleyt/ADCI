@@ -195,9 +195,7 @@ function addNightsToFestival($conn, $festival, $year, $oneAct)
         $stmt->close();
 
     } else {
-        pageError("unable to prepare statement to get festival nights for [$oneAct] festival: [$festival] for year: [$year]");
-        exit ();
-
+        pageError("unable to prepare statement to get festival nights for [$oneAct] festival: [$festival->name] for year: [$year]. SQL=$sql");
     }
 }
 
@@ -224,8 +222,7 @@ function getFestival($conn, $festivalName, $year, $oneAct)
         $stmt->close();
         return $returnVal;
     } else {
-        pageError("unable to prepare statement to get festival info for [$oneAct] festival: [$festivalName] for year: [$year]");
-        exit ();
+        pageError("unable to prepare statement to get festival info for [$oneAct] festival: [$festivalName] for year: [$year]. SQL=$sql");
     }
 }
 
@@ -267,7 +264,6 @@ function printFestivalsList($year, $oneAct)
 
         $stmt->close();
     } else {
-        pageError("unable to prepare statement to get list of [$oneAct] festivals for year: [$year]");
-        exit ();
+        pageError("unable to prepare statement to get list of [$oneAct] festivals for year: [$year]. SQL=$sql");
     }
 }
