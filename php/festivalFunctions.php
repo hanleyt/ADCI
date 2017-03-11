@@ -176,23 +176,10 @@ function getAuthorOfPlay($conn, $play, $oneAct)
 function addNightsToFestival($conn, $festival, $year, $oneAct)
 {
     $tableName = $oneAct . "NIGHTS_" . $year;
-
-    //TODO Change db table DRAMA_GROUP to DRAMA_GROUP_2016 in database
-    if ($year == 2016) {
-        $tableToJoin = $oneAct . "DRAMA_GROUP";
-        if (strlen($oneAct) == 0) {
-            $playCol = "PLAY_2016";
-        } else {
-            $playCol = "PLAY";
-        }
-    } else {
-        $tableToJoin = $oneAct . "DRAMA_GROUP_" . $year;
-        $playCol = "PLAY";
-    }
+    $tableToJoin = $oneAct . "DRAMA_GROUP_" . $year;
     $joinWithGroupTable = " JOIN " . $tableToJoin . " on " . $tableToJoin . ".NAME=" . $tableName . ".`GROUP`";
 
-
-    $sql = "SELECT DATE, `GROUP`, " . $playCol . ", LEVEL FROM " . $tableName . $joinWithGroupTable . " where " . $tableName . ".FESTIVAL=? order by DATE ASC";
+    $sql = "SELECT DATE, `GROUP`, PLAY, LEVEL FROM " . $tableName . $joinWithGroupTable . " where " . $tableName . ".FESTIVAL=? order by DATE ASC";
     if ($stmt = $conn->prepare($sql)) {
 
         $stmt->bind_param("s", $festival->name);
@@ -208,7 +195,7 @@ function addNightsToFestival($conn, $festival, $year, $oneAct)
         $stmt->close();
 
     } else {
-        printf("unable to prepare statement to get festival nights");
+        pageError("unable to prepare statement to get festival nights for [$oneAct] festival: [$festival] for year: [$year]");
         exit ();
 
     }
@@ -237,7 +224,7 @@ function getFestival($conn, $festivalName, $year, $oneAct)
         $stmt->close();
         return $returnVal;
     } else {
-        printf("unable to prepare statement to get festival info");
+        pageError("unable to prepare statement to get festival info for [$oneAct] festival: [$festivalName] for year: [$year]");
         exit ();
     }
 }
@@ -280,7 +267,7 @@ function printFestivalsList($year, $oneAct)
 
         $stmt->close();
     } else {
-        printf("unable to prepare statement to get list of festivals");
+        pageError("unable to prepare statement to get list of [$oneAct] festivals for year: [$year]");
         exit ();
     }
 }
