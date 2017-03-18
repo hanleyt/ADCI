@@ -63,7 +63,7 @@ function buildResultsArray($competition, $year, $oneAct)
         $sort ['numThirds'] [$key] = $row ['numThirds'];
         $sort ['noPointsFestivals'] [$key] = $row ['noPointsFestivals'];
     }
-    array_multisort($sort ['totalPoints'], SORT_DESC, $sort ['numWins'], SORT_DESC, $sort ['numSeconds'], SORT_DESC, $sort ['numThirds'], SORT_DESC, $sort ['noPointsFestivals'], SORT_ASC, $resultsArray);
+    array_multisort($sort ['numWins'], SORT_DESC, $sort ['numSeconds'], SORT_DESC, $sort ['numThirds'], SORT_DESC, $sort ['noPointsFestivals'], SORT_ASC, $resultsArray);
 
     return $resultsArray;
     $conn->close();
