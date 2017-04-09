@@ -19,7 +19,7 @@ function printFestivalInfo($festivalName, $year, $oneAct)
 
     if ($festival == null) {
         $conn->close();
-        echo "<h2>No data returned for festival [" . $festivalName . "] for " . $year . "</h2>";
+        pageError("No data returned for festival [" . $festivalName . "] for " . $year);
     }
 
     addNightsToFestival($conn, $festival, $year, $oneActStr);
