@@ -66,16 +66,17 @@ function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
 
         echo "<li class=\"night\">\n";
 
-        echo $openOrConfinedSection;
+        echo "<time class=\"date\">" . $formattedDate . "</time>\n";
 
         echo "<div class=\"night-details\">\n";
-        echo "<h4>" . $night->group->name . "</h4>\n";
+        echo $night->group->name . "</br>";
         printPresentLine($night->group->name);
+        echo $night->play . "<span class=\"by\">  by  </span>" . $author;
 
-        echo "<h4>" . $night->play . "<span class=\"by\">  by  </span>" . $author . "</h4>\n";
+
         echo "</div>\n";
 
-        echo "<time class=\"date\">" . $formattedDate . "</time>\n";
+        echo $openOrConfinedSection;
 
         echo "</li>\n";
     }
@@ -86,9 +87,9 @@ function printFormattedFestivalInfo($festival, $conn, $year, $oneAct)
 function printPresentLine($groupName)
 {
     if (substr($groupName, -1) == "s" || substr($groupName, -1) == "S") {
-        echo "<h5>present</h5>\n";
+        echo "present</br>";
     } else {
-        echo "<h5>presents</h5>\n";
+        echo "presents</br>";
     }
 }
 

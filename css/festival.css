@@ -103,7 +103,7 @@
 
 .competition {
     font-size: 22px;
-    float: left;
+    float: right;
     display: inline-block;
     color: white;
     width: 140px;
@@ -193,7 +193,7 @@
     border: none;
     border-radius: 4px;
     color: white;
-    float: right;
+    float: left;
     width: 165px;
     text-align: center;
     display: inline-block;
