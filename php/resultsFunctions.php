@@ -37,21 +37,17 @@ function buildResultsArray($competition, $year, $oneAct)
     $rowNum = 0;
     while ($row = $groupAndPlayList->fetch_assoc()) {
 
-        if ($oneAct == "") {
-            $groupName = $row ['NAME'];
-            $play = $row ["PLAY"];
-        } else {
-            $groupName = $row ['GROUP'];
-            $play = $row ['PLAY'];
-        }
+        $groupName = $row ['NAME'];
+        $play = $row ["PLAY"];
+
         $resultsArray [$rowNum] ['Group'] = $groupName;
         $resultsArray [$rowNum] ['Play'] = $play;
-        $resultsArray [$rowNum] ['numWins'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'FIRST');
-        $resultsArray [$rowNum] ['numSeconds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'SECOND');
-        $resultsArray [$rowNum] ['numThirds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 'THIRD');
-        $resultsArray [$rowNum] ['numFestivalsEntered'] = getNumFestivalsEntered($conn, $groupName, $year, $oneAct, $play);
-        $resultsArray [$rowNum] ['totalPoints'] = caluclatePointsFromTopThreeFestivals($resultsArray [$rowNum] ['numWins'], $resultsArray [$rowNum] ['numSeconds'], $resultsArray [$rowNum] ['numThirds']);
-        $resultsArray [$rowNum] ['noPointsFestivals'] = getNumNoPlacings($conn, $groupName, $year, $oneAct, $play);
+        $resultsArray [$rowNum] ['numWins'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, 'FIRST');
+        $resultsArray [$rowNum] ['numSeconds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, 'SECOND');
+        $resultsArray [$rowNum] ['numThirds'] = getNumPlacings($conn, $groupName, $competition, $year, $oneAct, 'THIRD');
+        $resultsArray [$rowNum] ['numFestivalsEntered'] = getNumFestivalsEntered($conn, $groupName, $year, $oneAct);
+        $resultsArray [$rowNum] ['totalPoints'] = calculatePointsFromTopThreeFestivals($resultsArray [$rowNum] ['numWins'], $resultsArray [$rowNum] ['numSeconds'], $resultsArray [$rowNum] ['numThirds']);
+        $resultsArray [$rowNum] ['noPointsFestivals'] = getNumNoPlacings($conn, $groupName, $year, $oneAct);
         $rowNum++;
     }
 
@@ -129,7 +125,7 @@ function printTableEnd()
        </div>";
 }
 
-function caluclatePointsFromTopThreeFestivals($numWins, $numSeconds, $numThirds)
+function calculatePointsFromTopThreeFestivals($numWins, $numSeconds, $numThirds)
 {
     $MAX_COUNTED_FESTIVALS = 3;
 
@@ -173,61 +169,35 @@ function array_sort_by_column(&$arr, $col, $dir = SORT_DESC)
     array_multisort($sort_col, $dir, $arr);
 }
 
-function getNumFestivalsEntered($conn, $groupName, $year, $oneAct, $play)
+function getNumFestivalsEntered($conn, $groupName, $year, $oneAct)
 {
     $formattedGroupName = $conn->real_escape_string($groupName);
-    if ($oneAct == "") {
-        $sql = "SELECT count(*) as num_entries FROM " . $oneAct . "NIGHTS_" . $year . " where " . $oneAct . "NIGHTS_" . $year . ".GROUP='$formattedGroupName' 
-            and " . $oneAct . "NIGHTS_" . $year . ".FESTIVAL != 'All-Ireland Open' 
-            and " . $oneAct . "NIGHTS_" . $year . ".FESTIVAL != 'All-Ireland Confined'";
-    } else {
-        $formattedPlayName = $conn->real_escape_string($play);
-        $sql = "SELECT count(*) as num_entries FROM " . $oneAct . "NIGHTS_" . $year . " where " . $oneAct . "NIGHTS_" . $year . ".GROUP='$formattedGroupName'
-		and " . $oneAct . "NIGHTS_" . $year . ".PLAY='$formattedPlayName'
+    $sql = "SELECT count(*) as num_entries FROM " . $oneAct . "NIGHTS_" . $year . " where " . $oneAct . "NIGHTS_" . $year . ".GROUP='$formattedGroupName' 
+        and " . $oneAct . "NIGHTS_" . $year . ".FESTIVAL != 'All-Ireland Open' 
+        and " . $oneAct . "NIGHTS_" . $year . ".FESTIVAL != 'All-Ireland Confined'
         and " . $oneAct . "NIGHTS_" . $year . ".FESTIVAL != 'All-Ireland One Act'";
-    }
     $result = $conn->query($sql);
     $row = $result->fetch_assoc();
     return $row ['num_entries'];
 }
 
-function getNumNoPlacings($conn, $groupName, $year, $oneAct, $play)
+function getNumNoPlacings($conn, $groupName, $year, $oneAct)
 {
     $formattedGroupName = $conn->real_escape_string($groupName);
 
-    if ($oneAct == "") {
-        $sql = "SELECT count(*) as num_entries FROM NIGHTS_" . $year . " as N
-		INNER JOIN FESTIVAL_RESULTS_" . $year . " as R ON N.FESTIVAL = R.FESTIVAL
-        where N.GROUP='$formattedGroupName' 
-            and R.FESTIVAL != 'All-Ireland Open' 
-            and R.FESTIVAL != 'All-Ireland Confined' 
-			and (R.OPEN_FIRST != '$formattedGroupName' or R.OPEN_FIRST is NULL)
-			and (R.OPEN_SECOND != '$formattedGroupName' or R.OPEN_SECOND is NULL)
-			and (R.OPEN_THIRD != '$formattedGroupName' or R.OPEN_THIRD is NULL)
-			and (R.CONFINED_FIRST != '$formattedGroupName' or R.CONFINED_FIRST is NULL)
-			and (R.CONFINED_SECOND != '$formattedGroupName' or R.CONFINED_SECOND is NULL)
-			and (R.CONFINED_THIRD != '$formattedGroupName' or R.CONFINED_THIRD is NULL)";
-    } else {
-        $formattedPlayName = $conn->real_escape_string($play);
-        $sql = "SELECT count(*) as num_entries FROM " . $oneAct . "NIGHTS_" . $year . " as N
-		INNER JOIN " . $oneAct . "FESTIVAL_RESULTS_" . $year . " as R ON N.FESTIVAL = R.FESTIVAL
-			where N.GROUP='$formattedGroupName'
-			and N.PLAY='$formattedPlayName'
-			and R.FESTIVAL != 'All-Ireland One Act' 
-			and (R.OPEN_FIRST != '$formattedGroupName' or R.OPEN_FIRST is NULL)
-			and (R.OPEN_SECOND != '$formattedGroupName' or R.OPEN_SECOND is NULL)
-			and (R.OPEN_THIRD != '$formattedGroupName' or R.OPEN_THIRD is NULL)
-			and (R.CONFINED_FIRST != '$formattedGroupName' or R.CONFINED_FIRST is NULL)
-			and (R.CONFINED_SECOND != '$formattedGroupName' or R.CONFINED_SECOND is NULL)
-			and (R.CONFINED_THIRD != '$formattedGroupName' or R.CONFINED_THIRD is NULL)
-			
-			and (R.OPEN_FIRST_PLAY != '$formattedPlayName' or R.OPEN_FIRST_PLAY is NULL)
-			and (R.OPEN_SECOND_PLAY != '$formattedPlayName' or R.OPEN_SECOND_PLAY is NULL)
-			and (R.OPEN_THIRD_PLAY != '$formattedPlayName' or R.OPEN_THIRD_PLAY is NULL)
-			and (R.CONFINED_FIRST_PLAY != '$formattedPlayName' or R.CONFINED_FIRST_PLAY is NULL)
-			and (R.CONFINED_SECOND_PLAY != '$formattedPlayName' or R.CONFINED_SECOND_PLAY is NULL)
-			and (R.CONFINED_THIRD_PLAY != '$formattedPlayName' or R.CONFINED_THIRD_PLAY is NULL)";
-    }
+    $sql = "SELECT count(*) as num_entries FROM " . $oneAct . "NIGHTS_" . $year . " as N
+    INNER JOIN " . $oneAct . "FESTIVAL_RESULTS_" . $year . " as R ON N.FESTIVAL = R.FESTIVAL
+    where N.GROUP='$formattedGroupName' 
+        and R.FESTIVAL != 'All-Ireland Open' 
+        and R.FESTIVAL != 'All-Ireland Confined'
+        and R.FESTIVAL != 'All-Ireland One Act' 
+        and (R.OPEN_FIRST != '$formattedGroupName' or R.OPEN_FIRST is NULL)
+        and (R.OPEN_SECOND != '$formattedGroupName' or R.OPEN_SECOND is NULL)
+        and (R.OPEN_THIRD != '$formattedGroupName' or R.OPEN_THIRD is NULL)
+        and (R.CONFINED_FIRST != '$formattedGroupName' or R.CONFINED_FIRST is NULL)
+        and (R.CONFINED_SECOND != '$formattedGroupName' or R.CONFINED_SECOND is NULL)
+        and (R.CONFINED_THIRD != '$formattedGroupName' or R.CONFINED_THIRD is NULL)";
+
     $result = $conn->query($sql);
     if ($result) {
         if ($row = $result->fetch_assoc()) {
@@ -238,23 +208,16 @@ function getNumNoPlacings($conn, $groupName, $year, $oneAct, $play)
     }
 }
 
-function getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, $place)
+function getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $place)
 {
     $formattedGroupName = $conn->real_escape_string($groupName);
     $groupNameColumn = $competition . "_" . $place;
+    $resultsTable = $oneAct . "FESTIVAL_RESULTS_" . $year;
 
-    if ($oneAct == "") {
-        $sql = "SELECT count(*) as num_placings FROM " . $oneAct . "FESTIVAL_RESULTS_" . $year . " where $groupNameColumn='$formattedGroupName'
-		and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Open'
-		and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Confined'";
-    } else {
-        $formattedPlayName = $conn->real_escape_string($play);
-        $playNameColumn = $competition . "_" . $place . "_PLAY";
-
-        $sql = "SELECT count(*) as num_placings FROM " . $oneAct . "FESTIVAL_RESULTS_" . $year . " where $groupNameColumn='$formattedGroupName'
-		and $playNameColumn='$formattedPlayName'
-		and " . $oneAct . "FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland One Act'";
-    }
+    $sql = "SELECT count(*) as num_placings FROM $resultsTable where $groupNameColumn='$formattedGroupName'
+    and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Open'
+    and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Confined'
+    and $resultsTable.FESTIVAL != 'All-Ireland One Act'";
 
     $result = $conn->query($sql);
     if ($result) {
@@ -267,14 +230,8 @@ function getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $play, 
 
 function getListOfGroupsAndPlays($conn, $competition, $year, $oneAct)
 {
-    if ($oneAct == "") {
-        $sql = "SELECT NAME, `PLAY` FROM DRAMA_GROUP_$year where LEVEL='$competition'";
-    } else {
-        $nightsTable = $oneAct . "NIGHTS_" . $year;
-        $groupTable = $oneAct . "DRAMA_GROUP_" . $year;
-
-        $sql = "SELECT DISTINCT `GROUP`, PLAY FROM $nightsTable JOIN $groupTable ON $groupTable.NAME=$nightsTable.GROUP WHERE $groupTable.LEVEL='" . $competition . "'";
-    }
+    $groupTable = $oneAct . "DRAMA_GROUP_" . $year;
+    $sql = "SELECT NAME, `PLAY` FROM $groupTable where LEVEL='$competition'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
