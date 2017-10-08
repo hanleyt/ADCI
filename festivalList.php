@@ -67,10 +67,6 @@
         ?>
     </main>
 
-    <?php
-        echo "<h1>oneAct = $oneAct </h1>";
-    ?>
-
     <footer class="social-icons">
         <a target="_blank" href="https://www.facebook.com/adcipage/" title="Facebook"><img src="/img/facebook.png"
                                                                                            alt="Facebook"></a>
