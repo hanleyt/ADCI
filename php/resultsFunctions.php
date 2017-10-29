@@ -215,10 +215,10 @@ function getNumPlacings($conn, $groupName, $competition, $year, $oneAct, $place)
     $resultsTable = $oneAct . "FESTIVAL_RESULTS_" . $year;
 
     $sql = "SELECT count(*) as num_placings FROM $resultsTable where $groupNameColumn='$formattedGroupName'
-    and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Open'
-    and FESTIVAL_RESULTS_" . $year . ".FESTIVAL != 'All-Ireland Confined'
+    and $resultsTable.FESTIVAL != 'All-Ireland Open'
+    and $resultsTable.FESTIVAL != 'All-Ireland Confined'
     and $resultsTable.FESTIVAL != 'All-Ireland One Act'";
-
+    
     $result = $conn->query($sql);
     if ($result) {
         if ($row = $result->fetch_assoc()) {
